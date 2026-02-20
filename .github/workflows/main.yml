@@ -41,6 +41,9 @@ jobs:
       - name: Chmod Gradle
         run: chmod +x ./gradlew
 
+      - name: Download and extract fml-loom
+        run: wget https://github.com/XiaoYuOvO/fml-loom/releases/download/0.1/fml-loom-0.1.local-repo.zip && unzip fml-loom-0.1.local-repo.zip -d ~/repository/
+
       - name: Build
         run: ./gradlew build --no-daemon
 
