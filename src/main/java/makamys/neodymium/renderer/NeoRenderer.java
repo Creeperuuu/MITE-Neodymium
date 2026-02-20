@@ -29,9 +29,7 @@ import static org.lwjgl.opengl.GL15.glBindBuffer;
 import static org.lwjgl.opengl.GL20.*;
 import static org.lwjgl.opengl.GL30.glBindVertexArray;
 
-/**
- * The main renderer class.
- */
+/** The main renderer class. */
 public class NeoRenderer {
 
     public boolean hasInited = false;
@@ -67,12 +65,13 @@ public class NeoRenderer {
     private double eyePosY;
     private double eyePosZ;
 
-    // Eye position in world space, transformed by model-view matrix (takes third person camera offset into account)
+    // Eye position in world space, transformed by model-view matrix (takes third person camera
+    // offset into account)
     private double eyePosXT;
     private double eyePosYT;
     private double eyePosZT;
 
-    // eyePos?T divided by 16 
+    // eyePos?T divided by 16
     int eyePosXTDiv;
     int eyePosYTDiv;
     int eyePosZTDiv;
@@ -93,9 +92,10 @@ public class NeoRenderer {
 
     Vector4f transformedOrigin = new Vector4f();
 
-
     private int gcCounter = 0;
-    public int preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer[] sortedWorldRenderers) {
+
+    public int preRenderSortedRenderers(int renderPass, double alpha, WorldRenderer
+                    [] sortedWorldRenderers) {
         if (!hasInited)
             return 0;
 
@@ -195,7 +195,7 @@ public class NeoRenderer {
     }
 
     private void sortMeshes(boolean pass0, boolean pass1) {
-        for (final GPUMemoryManager mem: mems) {
+        for (final GPUMemoryManager mem : mems) {
             for (NeoRegion r : loadedRegionsMap.values()) {
                 r.getRenderData(mem).sort(eyePosX, eyePosY, eyePosZ, pass0, pass1);
             }
@@ -211,11 +211,13 @@ public class NeoRenderer {
         loadedRegionsList.addAll(loadedRegionsMap.values());
         loadedRegionsList.sort(Comparators.REGION_DISTANCE_COMPARATOR.setOrigin(eyePosX, eyePosY, eyePosZ));
 
-        for (final GPUMemoryManager mem: mems) {
+        for (final GPUMemoryManager mem : mems) {
             mem.piFirst.clear();
             mem.piCount.clear();
             int order = mem.pass == 0 ? 1 : -1;
-            for (int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1; regionI >= 0 && regionI < loadedRegionsList.size(); regionI += order) {
+            for (int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1;
+                    regionI >= 0 && regionI < loadedRegionsList.size();
+                    regionI += order) {
                 NeoRegion.RenderData region = loadedRegionsList.get(regionI).getRenderData(mem);
                 region.batchFirst = mem.piFirst.position();
                 for (Mesh mesh : region.getSentMeshes()) {
@@ -230,7 +232,9 @@ public class NeoRenderer {
                         } else {
                             renderedMeshesRender += meshes;
                         }
-                        for (int j = mem.piCount.position() - meshes; j < mem.piCount.position(); j++) {
+                        for (int j = mem.piCount.position() - meshes;
+                                j < mem.piCount.position();
+                                j++) {
                             final int count = mem.piCount.get(j) / mem.verticesPerPolygon;
                             if (shadowPass) {
                                 renderedPolygonsShadow += count;
@@ -239,8 +243,9 @@ public class NeoRenderer {
                             }
                         }
                     }
-                    if(Compat.isSpeedupAnimationsEnabled() && !Compat.keepRenderListLogic()) {
-                        // Hodgepodge hooks this method to decide what animations to play, make sure it runs
+                    if (Compat.isSpeedupAnimationsEnabled() && !Compat.keepRenderListLogic()) {
+                        // Hodgepodge hooks this method to decide what animations to play, make sure
+                        // it runs
                         wr.getGLCallListForPass(mem.pass);
                     }
                 }
@@ -258,29 +263,29 @@ public class NeoRenderer {
                 || renderedMeshesRender < NeodymiumConfig.maxMeshesPerFrame.getIntegerValue())) {
             if ((!isFogEnabled() && !NeodymiumConfig.fogOcclusionWithoutFog.getBooleanValue())
 //                || Config.fogOcclusion == !Config.fogOcclusion
-                || mesh.distSq(
-                    eyePosX / 16.0,
-                    mesh.y + 0.5,
-                    eyePosZ / 16.0)
-                   < Math.pow((fogStartEnd.get(1)) / 16.0 + 1.0, 2)) {
+                    || mesh.distSq(
+                                    eyePosX / 16.0,
+                                    mesh.y + 0.5,
+                                    eyePosZ / 16.0)
+                            < Math.pow((fogStartEnd.get(1)) / 16.0 + 1.0, 2)) {
                 return true;
             }
         }
         return false;
     }
 
-
-
     private static class DelayedTask implements Comparable<DelayedTask> {
         public final int timestamp;
         public final Runnable task;
         private final int idx;
         private static final AtomicInteger IIDX = new AtomicInteger();
+
         public DelayedTask(int timestamp, Runnable task) {
             this.timestamp = timestamp;
             this.task = task;
             idx = IIDX.getAndIncrement();
         }
+
         @Override
         public int compareTo(DelayedTask o) {
             if (timestamp == o.timestamp) {
@@ -289,6 +294,7 @@ public class NeoRenderer {
             return Integer.compare(timestamp, o.timestamp);
         }
     }
+
     private static int frameCounter = 0;
     private static final TreeSet<DelayedTask> tasks = new TreeSet<>();
 
@@ -301,8 +307,8 @@ public class NeoRenderer {
 
         RenderGlobal rg = Minecraft.getMinecraft().renderGlobal;
 
-        for(WorldRenderer wr : rg.sortedWorldRenderers) {
-            if(wr != null) {
+        for (WorldRenderer wr : rg.sortedWorldRenderers) {
+            if (wr != null) {
                 ++rg.renderersLoaded;
                 if (wr.skipRenderPass[0]) {
                     ++rg.renderersSkippingRenderPass;
@@ -327,7 +333,11 @@ public class NeoRenderer {
         }
         frameCounter++;
         if (Minecraft.getMinecraft().playerController.netClientHandler.doneLoadingTerrain) {
-            for (Iterator<Entry<ChunkCoordIntPair, NeoRegion>> it = loadedRegionsMap.entrySet().iterator(); it.hasNext(); ) {
+            for (Iterator<
+                            Entry<
+                                    ChunkCoordIntPair,
+                                    NeoRegion>> it = loadedRegionsMap.entrySet().iterator();
+                    it.hasNext(); ) {
                 Entry<ChunkCoordIntPair, NeoRegion> kv = it.next();
                 NeoRegion v = kv.getValue();
 
@@ -345,7 +355,7 @@ public class NeoRenderer {
     private void handleKeyboard() {
         if (NeodymiumConfig.debugPrefix.getKeyCode() == 0
                 || (NeodymiumConfig.debugPrefix.getKeyCode() != -1
-                && Keyboard.isKeyDown(NeodymiumConfig.debugPrefix.getKeyCode()))) {
+                        && Keyboard.isKeyDown(NeodymiumConfig.debugPrefix.getKeyCode()))) {
             if (CheatHelper.canCheat()) {
                 if (Keyboard.isKeyDown(Keyboard.KEY_F) && !wasDown[Keyboard.KEY_F]) {
                     rendererActive = !rendererActive;
@@ -415,12 +425,14 @@ public class NeoRenderer {
         er.enableLightmap(alpha);
 
         var rendered = 0;
-        for (final GPUMemoryManager mem: mems) {
+        for (final GPUMemoryManager mem : mems) {
             glBindVertexArray(mem.VAO);
             int oldLimit = mem.piFirst.limit();
 
             int order = pass == 0 ? 1 : -1;
-            for (int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1; regionI >= 0 && regionI < loadedRegionsList.size(); regionI += order) {
+            for (int regionI = order == 1 ? 0 : loadedRegionsList.size() - 1;
+                    regionI >= 0 && regionI < loadedRegionsList.size();
+                    regionI += order) {
                 NeoRegion.RenderData region = loadedRegionsList.get(regionI).getRenderData(mem);
                 rendered += region.batchLimit - region.batchFirst;
                 Util.setPositionAndLimit(mem.piFirst, region.batchFirst, region.batchLimit);
@@ -524,7 +536,7 @@ public class NeoRenderer {
         glUniform3f(u_playerPos, (float) eyePosX, (float) eyePosY, (float) eyePosZ);
 
         if (Compat.isRPLEModPresent()) {
-            //TODO connect to RPLE gl api (once that exists)
+            // TODO connect to RPLE gl api (once that exists)
             // For now we just use the RPLE default texture indices
             glUniform1i(u_light_r, 1);
             glUniform1i(u_light_g, 2);
@@ -542,7 +554,9 @@ public class NeoRenderer {
     }
 
     /**
-     * @implSpec The attributes here need to be kept in sync with {@link makamys.neodymium.renderer.compat.RenderUtil#writeMeshPolygonToBuffer(int[], int, BufferWriter, int, int)}
+     * @implSpec The attributes here need to be kept in sync with {@link
+     *     makamys.neodymium.renderer.compat.RenderUtil#writeMeshPolygonToBuffer(int[], int,
+     *     BufferWriter, int, int)}
      */
     public boolean init() {
 
@@ -554,7 +568,8 @@ public class NeoRenderer {
         return true;
     }
 
-    private GPUMemoryManager initMemoryManager(int pass, int drawMode, int verticesPerPolygon) throws Exception {
+    private GPUMemoryManager initMemoryManager(int pass, int drawMode, int verticesPerPolygon)
+            throws Exception {
         final GPUMemoryManager mem = new GPUMemoryManager(mems.size(), pass, drawMode, verticesPerPolygon);
         mems.add(mem);
         memMap.computeIfAbsent(pass, p -> new ArrayList<>()).add(mem);
@@ -619,6 +634,19 @@ public class NeoRenderer {
             int newShaderProgram = glCreateProgram();
             glAttachShader(newShaderProgram, vertexShader);
             glAttachShader(newShaderProgram, fragmentShader);
+
+/* ===== BIND ATTRIBUTES FOR GLSL 120 ===== */
+
+            glBindAttribLocation(newShaderProgram, 0, "POS");
+            glBindAttribLocation(newShaderProgram, 1, "TEXTURE");
+            glBindAttribLocation(newShaderProgram, 2, "COLOR");
+            glBindAttribLocation(newShaderProgram, 3, "ENTITY_DATA_1");
+            glBindAttribLocation(newShaderProgram, 4, "BRIGHTNESS");
+            glBindAttribLocation(newShaderProgram, 5, "NORMAL");
+            glBindAttribLocation(newShaderProgram, 6, "MIDTEXTURE");
+
+/* ======================================== */
+
             glLinkProgram(newShaderProgram);
 
             if (glGetProgrami(newShaderProgram, GL_LINK_STATUS) == 0) {
@@ -647,11 +675,11 @@ public class NeoRenderer {
         glDeleteProgram(shaderProgramsFog[1]);
         glDeleteProgram(shaderProgramsNoFog[0]);
         glDeleteProgram(shaderProgramsNoFog[1]);
-        for (final GPUMemoryManager mem: mems) {
+        for (final GPUMemoryManager mem : mems) {
             mem.destroy();
         }
 
-        for (final NeoRegion region: loadedRegionsList) {
+        for (final NeoRegion region : loadedRegionsList) {
             region.destroy();
         }
     }
@@ -740,7 +768,6 @@ public class NeoRenderer {
         }
     }
 
-
     protected void uploadMeshToGPU(Mesh mesh) {
         if (mesh.gpuStatus != GPUStatus.UNSENT || mesh.buffer == null || mesh.verticesPerPolygon == -1) {
             return;
@@ -796,13 +823,13 @@ public class NeoRenderer {
         List<String> text = new ArrayList<>();
         text.add(
                 (!rendererActive ? EnumChatFormatting.RED + "(OFF) " : "")
-                + (statusCommand ? EnumChatFormatting.LIGHT_PURPLE : "")
-                + "Neodymium " + VERSION
+                        + (statusCommand ? EnumChatFormatting.LIGHT_PURPLE : "")
+                        + "Neodymium " + VERSION
         );
         text.addAll(Arrays.asList(
                 "Meshes: " + ChunkMesh.instances.get() + " (" + ChunkMesh.usedRAM.get() / 1024 / 1024 + "MB)",
                 "Rendered: " + renderedMeshesRender + " (" + renderedPolygonsRender / 1000 + "KQ)"
-                                 ));
+        ));
         if (Compat.isOptiFineShadersEnabled()) {
             text.add("Shadow Rendered: " + renderedMeshesShadow + " (" + renderedPolygonsShadow / 1000 + "KQ)");
         }
@@ -847,6 +874,8 @@ public class NeoRenderer {
     }
 
     public static enum WorldRendererChange {
-        VISIBLE, INVISIBLE, DELETED
+        VISIBLE,
+        INVISIBLE,
+        DELETED
     }
 }
