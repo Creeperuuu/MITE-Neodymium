@@ -42,7 +42,10 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Download and extract fml-loom
-        run: wget https://github.com/XiaoYuOvO/fml-loom/releases/download/0.1/fml-loom-0.1.local-repo.zip && unzip fml-loom-0.1.local-repo.zip -d ~/repository/
+        run: wget https://github.com/XiaoYuOvO/fml-loom/releases/download/0.1/fml-loom-0.1.local-repo.zip && unzip fml-loom-0.1.local-repo.zip -d ~/.m2/repository/
+
+      - name: Copy MITE-1.6.4 in cache
+        run: mkdir ~/.gradle/caches/ && mkdir ~/.gradle/caches/1.6.4-MITE/ && cp ./1.6.4-MITE.jar ~/.gradle/caches/1.6.4-MITE/
 
       - name: Build
         run: ./gradlew build --no-daemon
