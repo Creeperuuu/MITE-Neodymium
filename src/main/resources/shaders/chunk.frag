@@ -1,22 +1,22 @@
-#version 330 core
-out vec4 FragColor;
+#version 120
 
-in vec2 TexCoord;
 #ifdef RPLE
-in vec2 BTexCoordR;
-in vec2 BTexCoordG;
-in vec2 BTexCoordB;
+varying vec2 BTexCoordR;
+varying vec2 BTexCoordG;
+varying vec2 BTexCoordB;
 #else
-in vec2 BTexCoord;
+varying vec2 BTexCoord;
 #endif
-in vec4 Color;
-in vec4 Viewport;
-in mat4 ProjInv;
-in vec4 FogColor;
-in vec2 FogStartEnd;
-in float FogFactor;
+
+varying vec2 TexCoord;
+varying vec4 Color;
+varying vec4 Viewport;
+varying vec4 FogColor;
+varying vec2 FogStartEnd;
+varying float FogFactor;
 
 uniform sampler2D atlas;
+
 #ifdef RPLE
 uniform sampler2D lightTexR;
 uniform sampler2D lightTexG;
@@ -27,40 +27,33 @@ uniform sampler2D lightTex;
 
 void main()
 {
-	vec4 texColor = texture(atlas, TexCoord
+    vec4 texColor = texture2D(atlas, TexCoord
 #ifdef SHORT_UV
-	/ 32768.0
+        / 32768.0
 #endif
-	);
-	
-	vec4 colorMult = Color/256.0;
-	
-	vec4 lightyColor =
+    );
+
+    vec4 colorMult = Color / 256.0;
+
+    vec4 lightyColor =
 #ifdef RPLE
-	// RPLE assumes that we're using the legacy opengl pipeline, so it creates 3 textures:
-	//  color dark       bright
-	//   RED: Cyan    -> White
-	// GREEN: Magenta -> White
-	//  BLUE: Yellow  -> White
-	// In each texture, only a single channel varies, while the other 2 are set to 1, so the result becomes:
-	// (r, 1, 1) * (1, g, 1) * (1, 1, b) = (r, g, b)
-	texture(lightTexR, (BTexCoordR + 32767) / 65535.0) *
-	texture(lightTexG, (BTexCoordG + 32767) / 65535.0) *
-	texture(lightTexB, (BTexCoordB + 32767) / 65535.0);
+        texture2D(lightTexR, (BTexCoordR + 32767.0) / 65535.0) *
+        texture2D(lightTexG, (BTexCoordG + 32767.0) / 65535.0) *
+        texture2D(lightTexB, (BTexCoordB + 32767.0) / 65535.0);
 #else
-	texture(lightTex, (BTexCoord + 8.0) / 256.0);
+        texture2D(lightTex, (BTexCoord + 8.0) / 256.0);
 #endif
 
-	vec4 rasterColor = 
+    vec4 rasterColor =
 #ifdef PASS_0
-		vec4((texColor.xyz * colorMult.xyz) * lightyColor.xyz, texColor.w);
+        vec4((texColor.xyz * colorMult.xyz) * lightyColor.xyz, texColor.w);
 #else
-		(texColor * colorMult) * lightyColor;
+        (texColor * colorMult) * lightyColor;
 #endif
-	
+
 #ifdef RENDER_FOG
-		FragColor = vec4(mix(FogColor.xyz, rasterColor.xyz, FogFactor), rasterColor.w);
+    gl_FragColor = vec4(mix(FogColor.xyz, rasterColor.xyz, FogFactor), rasterColor.w);
 #else
-		FragColor = rasterColor;
+    gl_FragColor = rasterColor;
 #endif
 }

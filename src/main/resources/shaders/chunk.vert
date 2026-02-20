@@ -1,72 +1,80 @@
-#version 330 core
-layout (location = ATTRIB_POS) in vec3 aPos;
-layout (location = ATTRIB_TEXTURE) in vec2 aTexCoord;
-#ifdef RPLE
-layout (location = ATTRIB_BRIGHTNESS_RED) in vec2 aBTexCoordR;
-layout (location = ATTRIB_BRIGHTNESS_GREEN) in vec2 aBTexCoordG;
-layout (location = ATTRIB_BRIGHTNESS_BLUE) in vec2 aBTexCoordB;
-#else
-layout (location = ATTRIB_BRIGHTNESS) in vec2 aBTexCoord;
-#endif
-layout (location = ATTRIB_COLOR) in vec4 aColor;
+#version 120
 
+/* ========= ATTRIBUTES ========= */
+attribute vec3 POS;
+attribute vec2 TEXTURE;
+attribute vec4 COLOR;
+attribute float ENTITY_DATA_1;
+attribute vec2 BRIGHTNESS;
+attribute vec3 NORMAL;
+attribute vec2 MIDTEXTURE;
+
+/* ========= UNIFORMS ========= */
 uniform mat4 modelView;
 uniform mat4 proj;
-uniform mat4 projInv;
 uniform vec4 viewport;
 uniform vec4 fogColor;
 uniform vec2 fogStartEnd;
 uniform int fogMode;
 uniform float fogDensity;
-
 uniform vec3 renderOffset;
 
-out vec2 TexCoord;
+/* ========= VARYINGS ========= */
+varying vec2 TexCoord;
+
 #ifdef RPLE
-out vec2 BTexCoordR;
-out vec2 BTexCoordG;
-out vec2 BTexCoordB;
+varying vec2 BTexCoordR;
+varying vec2 BTexCoordG;
+varying vec2 BTexCoordB;
 #else
-out vec2 BTexCoord;
+varying vec2 BTexCoord;
 #endif
-out vec4 Color;
-out vec4 Viewport;
-out mat4 ProjInv;
-out vec4 FogColor;
-out vec2 FogStartEnd;
-out float FogFactor; // -1 means: disable fog
+
+varying vec4 Color;
+varying vec4 Viewport;
+varying vec4 FogColor;
+varying vec2 FogStartEnd;
+varying float FogFactor;
 
 void main()
 {
-    vec4 untransformedPos = (vec4(aPos, 1.0) + vec4(renderOffset.x, renderOffset.y + 0.12, renderOffset.z, 0));
+    vec4 untransformedPos =
+        vec4(aPos, 1.0) +
+        vec4(renderOffset.x, renderOffset.y + 0.12, renderOffset.z, 0.0);
+
     gl_Position = proj * modelView * untransformedPos;
-	TexCoord = aTexCoord;
+
+    TexCoord = aTexCoord;
+
 #ifdef RPLE
-	BTexCoordR = aBTexCoordR;
-	BTexCoordG = aBTexCoordG;
-	BTexCoordB = aBTexCoordB;
+    BTexCoordR = aBTexCoordR;
+    BTexCoordG = aBTexCoordG;
+    BTexCoordB = aBTexCoordB;
 #else
-	BTexCoord = aBTexCoord;
+    BTexCoord = aBTexCoord;
 #endif
-	Color = aColor;
-	
-	Viewport = viewport;
-	ProjInv = projInv;
-	FogColor = fogColor;
-	
-	if(fogStartEnd.x >= 0 && fogStartEnd.y >= 0){
-		float s = fogStartEnd.x;
-		float e = fogStartEnd.y;
-		float c = length(untransformedPos);
-		
-		float fogFactor = fogMode == 0x2601
-						? clamp((e - c) / (e - s), 0, 1) /* GL_LINEAR */
-						: exp(-fogDensity * c); /* GL_EXP */
-						
-		
-		FogFactor = fogFactor;	
-	} else {
-		FogFactor = -1;
-	}
-	FogStartEnd = fogStartEnd;
+
+    Color = aColor;
+    Viewport = viewport;
+    FogColor = fogColor;
+
+    if (fogStartEnd.x >= 0.0 && fogStartEnd.y >= 0.0)
+    {
+        float s = fogStartEnd.x;
+        float e = fogStartEnd.y;
+        float c = length(untransformedPos.xyz);
+
+        float fogFactor =
+            (fogMode == 0x2601)
+            ? clamp((e - c) / (e - s), 0.0, 1.0) /* GL_LINEAR */
+            : exp(-fogDensity * c);             /* GL_EXP */
+
+        FogFactor = fogFactor;
+    }
+    else
+    {
+        FogFactor = -1.0;
+    }
+
+    FogStartEnd = fogStartEnd;
 }
